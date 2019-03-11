@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using CoreAnimation;
 using CoreGraphics;
@@ -13,6 +14,8 @@ namespace Xamarin.Forms.GoogleMaps.Clustering.iOS
     {
         private readonly MapView nativeMap;
         private const double AnimationDuration = 0.5; 
+        private float maxClusterZoom = 20;
+        private readonly nuint minimumClusterSize = 5;
 
         public ClusterRendererHandler(MapView mapView, ClusterIconGenerator iconGenerator)
             : base(mapView, iconGenerator)
@@ -26,6 +29,7 @@ namespace Xamarin.Forms.GoogleMaps.Clustering.iOS
         public void SetUpdateMarker(ClusteredMarker clusteredMarker)
         {
             var marker = GetMarker(clusteredMarker);
+            if (marker == null) return;
             marker.Position = new CLLocationCoordinate2D(clusteredMarker.Position.Latitude, clusteredMarker.Position.Longitude);
             marker.Title = clusteredMarker.Title;
             marker.Snippet = clusteredMarker.Snippet;
@@ -36,6 +40,11 @@ namespace Xamarin.Forms.GoogleMaps.Clustering.iOS
             marker.Flat = clusteredMarker.Flat;
             marker.Opacity = clusteredMarker.Opacity;
             marker.Icon = clusteredMarker.Icon;
+        }
+        
+        public override bool ShouldRenderAsCluster(ICluster cluster, float zoom)
+        {
+            return cluster.Count >= minimumClusterSize && zoom <= maxClusterZoom;
         }
 
         [Export("markerWithPosition:from:userData:clusterIcon:animated:")]
